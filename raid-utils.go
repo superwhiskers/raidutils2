@@ -15,72 +15,70 @@ import (
 	"runtime"
 	"strconv"
 	"syscall"
-	"time"
 	// externals
 	"github.com/bwmarrin/discordgo"
 )
 
 // the server variable
-var server *discordgo.UserGuild
+var (
+    server *discordgo.UserGuild
+    channels []*discordgo.Channel
+    dg *discordgo.Session
+    err error
+)
 
 // main func
 func main() {
 
 	runtime.GOMAXPROCS(1000)
 
-	// ask for a token
 	token := question("input a discord token below", []string{})
+	isBot := question("is this a bot?", []string{"yes", "no", "true", "false"})
 
-	// check if this is a bot
-	bot := question("is this a bot?", []string{"yes", "no", "true", "false"})
-	bot = map[string]string{"yes": "Bot ", "no": "", "true": "Bot ", "false": ""}[bot]
-
-	// initiate discordgo
-	dg, err := discordgo.New(bot + token)
+    switch isBot {
+        
+    case "yes", "true":
+        dg, err = discordgo.New("Bot " + token)
+        
+    case "no", "false":
+        dg, err = discordgo.New(token)
+        
+    }
+    
 	if err != nil {
 
-		// error when trying to create a session
 		fmt.Printf("[err]: could not initiate a discord session...\n")
 		fmt.Printf("       %v\n", err)
 		os.Exit(1)
 
 	}
 
-	// initiate the websocket connection
 	err = dg.Open()
 	if err != nil {
 
-		// could not initate the websocket connection
 		fmt.Printf("[err]: could not initiate the websocket connection...\n")
 		fmt.Printf("       %v\n", err)
 		os.Exit(1)
 
 	}
 
-	// get the servers
 	servers, err := dg.UserGuilds(100, "", "")
 	if err != nil {
 
-		// could not retrieve the guilds
 		fmt.Printf("[err]: could not retrieve the guilds for the bot...\n")
 		fmt.Printf("       %v\n", err)
 		os.Exit(1)
 
 	}
 
-	// print the servers
 	for i, s := range servers {
 
-		// print the data from the server
 		fmt.Printf("%d: %s\n", i, s.Name)
 
 	}
 
-	// have the user select a server
-	fmt.Printf("select a server...\n")
-	serverIndStr := input(": ")
+	serverIndStr := question("select a server", []string{})
 
-	// convert it to an int
 	serverIndInt, err := strconv.Atoi(serverIndStr)
 	if err != nil {
 
@@ -91,83 +89,47 @@ func main() {
 
 	}
 
-	// ensure that index is in the slice
 	if len(servers) > serverIndInt {
 
-		// it is in the slice
 		server = servers[serverIndInt]
 
 	} else {
 
-		// it is not in the slice
 		fmt.Printf("[err]: %s is not in the server list...\n", serverIndStr)
 		os.Exit(1)
 
 	}
 
-	// now we can start the main loop
 	for {
 
-		// show the menu
-		fmt.Println(`
-		raid-utils v3 by superwhiskers
-
-		 1. start spamming
-		 2. tools
-		 3. exit
-		`)
-		fmt.Println(" raid-utils v3 | by superwhiskers")
+        fmt.Println("           _     _       _   _ _     ")
+        fmt.Println("          (_)   | |     | | (_) |    ")
+        fmt.Println(" _ __ __ _ _  __| |_   _| |_ _| |___ ")
+        fmt.Println("| '__/ _` | |/ _` | | | | __| | / __|")
+        fmt.Println("| | | (_| | | (_| | |_| | |_| | \\__ \\")
+        fmt.Println("|_|  \\__,_|_|\\__,_|\\__,_|\\__|_|_|___/")
+        fmt.Println("by superwhiskers")
+        fmt.Println()
+		fmt.Println(" 1. start the raid")
+		fmt.Println(" 2. open tool menu")
+		fmt.Println(" 3. exit")
 		fmt.Println()
-		fmt.Println(" (1) - dump audit logs")
-		fmt.Println(" (2) - start spamming")
-		fmt.Println(" (3) - clear webhooks in a server")
-		fmt.Println(" (4) - exit")
-		fmt.Println()
-		option := input(": ")
+		
+		switch question("select an option", []string{"1", "2", "3"}) {
 
-		// check the options
-		if option == "1" {
-
-			// no audit log dumping yet
-
-		} else if option == "2" {
-
-			// let them select a mode
-			fmt.Printf("")
-
-			// confirm the user is fine with this
+		case "1":
 			code := strconv.Itoa(randint(100000, 999999))
 			fmt.Printf("warning~~!\n")
 			fmt.Printf("you could potentially get banned from discord or\n")
 			fmt.Printf("the server you are using this in with this feature...\n")
 			fmt.Printf("enter the following code to perform this action: %s\n", code)
-			confirmation := input(": ")
 
-			if code == confirmation {
+			if code == input(": ") {
+				name := question("what should the webhooks be named?", []string{})
+				message := question("what should they spam?", []string{})
+				avatarUrl := question("what should the avatar url be?", []string{})
+				fmt.Println("calculating webhook count...\n")
 
-				// ask some configuration questions
-				fmt.Printf("how many webhooks do you want to run?\n")
-				hooksStr := input(": ")
-				fmt.Printf("what should the webhooks be named?\n")
-				name := input(": ")
-				fmt.Printf("what should they spam?\n")
-				message := input(": ")
-				fmt.Printf("what should the avatar url be?\n")
-				avatarUrl := input(": ")
-				fmt.Printf("spawning webhooks and starting spam...\n")
-
-				// convert the number of hooks to an int
-				hooks, err := strconv.Atoi(hooksStr)
-				if err != nil {
-
-					// unable to perform the conversion
-					fmt.Printf("[err]: unable to convert the number of hooks to an int...\n")
-					fmt.Printf("       %v\n", err)
-					os.Exit(1)
-
-				}
-
-				// get the channels from the server
 				allChannels, err := dg.GuildChannels(server.ID)
 				if err != nil {
 
@@ -177,46 +139,44 @@ func main() {
 
 				}
 
-				// initiate the channel slice
-				channels := []*discordgo.Channel{}
+				channels = []*discordgo.Channel{}
 
-				// filter out all non-text channels
 				for _, channel := range allChannels {
 
-					// check the type of the channel
 					if channel.Type == discordgo.ChannelTypeGuildText {
-
-						// it is a text channel
+					    
 						channels = append(channels, channel)
 
 					}
 
 				}
+				
+				hooks := len(channels)*10
+				
+				fmt.Printf("approximately %d webhooks will be spawned\n", hooks)
+				if question("are you sure you want to proceed?", []string{"yes", "no"}) == "no" {
+				    
+				    os.Exit(0)
+				    
+				}
+				
+				fmt.Printf("spawned 0/%d webhooks...", hooks)
 
-				// initiate the webhook goroutines
 				for w := 1; w <= hooks; w++ {
 
-					// combat them all picking the same channel
-					time.Sleep(750 * time.Millisecond)
-
-					// spawn a webhookWorker
-					go webhookWorker(dg, channels, name, message, avatarUrl)
+					go webhookWorker(w-1, name, message, avatarUrl)
+					
+					fmt.Printf("\rspawned %d/%d webhooks...", w, hooks)
 
 				}
 
-				// wait until the user presses ctrl-c
 				fmt.Printf("the spamming has begun. press ctrl-c to stop...\n")
 				sc := make(chan os.Signal, 1)
 				signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 				<-sc
 
-				// if they do, let them know
 				fmt.Printf("\nclosing discord connection and exiting...\n")
-
-				// and close the connection
 				dg.Close()
-
-				// and then exit
 				os.Exit(0)
 
 			} else {
@@ -225,37 +185,43 @@ func main() {
 
 			}
 
-		} else if option == "3" {
+		case "2":
+            fmt.Println()
+			fmt.Println("tools:")
+			fmt.Println(" 1. clear webhooks")
+			fmt.Println(" 2. fill channel list")
+			fmt.Println(" 3. back")
+			fmt.Println()
+			
+			switch question("select an option", []string{"1", "2", "3"}) {
+			    
+			case "1":
+    			hooks, err := dg.GuildWebhooks(server.ID)
+    			if err != nil {
 
-			// get all webhooks in the server
-			hooks, err := dg.GuildWebhooks(server.ID)
-			if err != nil {
+    				fmt.Printf("[err]: unable to retrieve webhooks for the selected server...\n")
+    				fmt.Printf("       %v\n", err)
+    				os.Exit(1)
+    
+    			}
 
-				// unable to get the server's webhooks
-				fmt.Printf("[err]: unable to retrieve webhooks for the selected server...\n")
-				fmt.Printf("       %v\n", err)
-				os.Exit(1)
+    			for _, hook := range hooks {
+    
+    				err := dg.WebhookDelete(hook.ID)
+    				if err != nil {
 
+    					fmt.Printf("[err]: unable to delete webhook...\n")
+    					fmt.Printf("       %v\n", err)
+    
+    				}
+    
+    			}
+    			
+    		//case "2":
+			    
 			}
 
-			// clear them all
-			for _, hook := range hooks {
-
-				// delete the webhook
-				err := dg.WebhookDelete(hook.ID)
-				if err != nil {
-
-					// unable to delete webhook
-					fmt.Printf("[err]: unable to delete webhook...\n")
-					fmt.Printf("       %v\n", err)
-
-				}
-
-			}
-
-		} else if option == "4" {
-
-			// exit the program
+		case "3":
 			os.Exit(0)
 
 		}
