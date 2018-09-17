@@ -12,10 +12,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"syscall"
 	"time"
-	"runtime"
 	// externals
 	"github.com/bwmarrin/discordgo"
 )
@@ -29,10 +29,14 @@ func main() {
 	runtime.GOMAXPROCS(1000)
 
 	// ask for a token
-	fmt.Printf("please input a discord token to use below\n")
+	token := question("input a discord token below", []string{})
+
+	// check if this is a bot
+	bot := question("is this a bot?", []string{"yes", "no", "true", "false"})
+	bot = map[string]string{"yes": "Bot ", "no": "", "true": "Bot ", "false": ""}[bot]
 
 	// initiate discordgo
-	dg, err := discordgo.New("Bot " + input(": "))
+	dg, err := discordgo.New(bot + token)
 	if err != nil {
 
 		// error when trying to create a session
@@ -105,16 +109,20 @@ func main() {
 	for {
 
 		// show the menu
-		fmt.Printf("------------------------------------\n")
-		fmt.Printf(" raid-utils v2 | by superwhiskers   \n")
-		fmt.Printf("------------------------------------\n")
-		fmt.Printf("                                    \n")
-		fmt.Printf(" (1) - dump audit logs              \n")
-		fmt.Printf(" (2) - spam a server with a message \n")
-		fmt.Printf(" (3) - clear webhooks in a server   \n")
-		fmt.Printf(" (4) - exit                         \n")
-		fmt.Printf("                                    \n")
-		fmt.Printf("------------------------------------\n")
+		fmt.Println(`
+		raid-utils v3 by superwhiskers
+
+		 1. start spamming
+		 2. tools
+		 3. exit
+		`)
+		fmt.Println(" raid-utils v3 | by superwhiskers")
+		fmt.Println()
+		fmt.Println(" (1) - dump audit logs")
+		fmt.Println(" (2) - start spamming")
+		fmt.Println(" (3) - clear webhooks in a server")
+		fmt.Println(" (4) - exit")
+		fmt.Println()
 		option := input(": ")
 
 		// check the options
@@ -124,9 +132,12 @@ func main() {
 
 		} else if option == "2" {
 
+			// let them select a mode
+			fmt.Printf("")
+
 			// confirm the user is fine with this
 			code := strconv.Itoa(randint(100000, 999999))
-			fmt.Printf("-- warning ------\n")
+			fmt.Printf("warning~~!\n")
 			fmt.Printf("you could potentially get banned from discord or\n")
 			fmt.Printf("the server you are using this in with this feature...\n")
 			fmt.Printf("enter the following code to perform this action: %s\n", code)
@@ -225,7 +236,7 @@ func main() {
 				fmt.Printf("       %v\n", err)
 				os.Exit(1)
 
-			} 
+			}
 
 			// clear them all
 			for _, hook := range hooks {

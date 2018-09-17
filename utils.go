@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -37,5 +38,49 @@ func randint(min, max int) int {
 
 	// generate a random int within the range
 	return rand.Intn(max-min) + min
+
+}
+
+// function that asks a question until it gets a valid answer
+func question(prompt string, valid []string) string {
+
+	var inp string
+
+	for {
+
+		fmt.Printf("%s\n", prompt)
+		if len(valid) != 0 {
+
+			fmt.Printf("(%s): ", strings.Join(valid, ", "))
+
+		} else {
+
+			fmt.Printf(": ")
+
+		}
+
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		inp = scanner.Text()
+
+		if len(valid) == 0 {
+
+			return inp
+
+		}
+
+		for _, ele := range valid {
+
+			if ele == inp {
+
+				return inp
+
+			}
+
+		}
+
+		fmt.Printf("%s is not a valid answer\n", inp)
+
+	}
 
 }
