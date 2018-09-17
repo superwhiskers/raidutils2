@@ -21,10 +21,10 @@ import (
 
 // the server variable
 var (
-    server *discordgo.UserGuild
-    channels []*discordgo.Channel
-    dg *discordgo.Session
-    err error
+	server   *discordgo.UserGuild
+	channels []*discordgo.Channel
+	dg       *discordgo.Session
+	err      error
 )
 
 // main func
@@ -35,16 +35,16 @@ func main() {
 	token := question("input a discord token below", []string{})
 	isBot := question("is this a bot?", []string{"yes", "no", "true", "false"})
 
-    switch isBot {
-        
-    case "yes", "true":
-        dg, err = discordgo.New("Bot " + token)
-        
-    case "no", "false":
-        dg, err = discordgo.New(token)
-        
-    }
-    
+	switch isBot {
+
+	case "yes", "true":
+		dg, err = discordgo.New("Bot " + token)
+
+	case "no", "false":
+		dg, err = discordgo.New(token)
+
+	}
+
 	if err != nil {
 
 		fmt.Printf("[err]: could not initiate a discord session...\n")
@@ -102,19 +102,19 @@ func main() {
 
 	for {
 
-        fmt.Println("           _     _       _   _ _     ")
-        fmt.Println("          (_)   | |     | | (_) |    ")
-        fmt.Println(" _ __ __ _ _  __| |_   _| |_ _| |___ ")
-        fmt.Println("| '__/ _` | |/ _` | | | | __| | / __|")
-        fmt.Println("| | | (_| | | (_| | |_| | |_| | \\__ \\")
-        fmt.Println("|_|  \\__,_|_|\\__,_|\\__,_|\\__|_|_|___/")
-        fmt.Println("by superwhiskers")
-        fmt.Println()
+		fmt.Println("           _     _       _   _ _     ")
+		fmt.Println("          (_)   | |     | | (_) |    ")
+		fmt.Println(" _ __ __ _ _  __| |_   _| |_ _| |___ ")
+		fmt.Println("| '__/ _` | |/ _` | | | | __| | / __|")
+		fmt.Println("| | | (_| | | (_| | |_| | |_| | \\__ \\")
+		fmt.Println("|_|  \\__,_|_|\\__,_|\\__,_|\\__|_|_|___/")
+		fmt.Println("by superwhiskers")
+		fmt.Println()
 		fmt.Println(" 1. start the raid")
 		fmt.Println(" 2. open tool menu")
 		fmt.Println(" 3. exit")
 		fmt.Println()
-		
+
 		switch question("select an option", []string{"1", "2", "3"}) {
 
 		case "1":
@@ -144,28 +144,28 @@ func main() {
 				for _, channel := range allChannels {
 
 					if channel.Type == discordgo.ChannelTypeGuildText {
-					    
+
 						channels = append(channels, channel)
 
 					}
 
 				}
-				
-				hooks := len(channels)*10
-				
+
+				hooks := len(channels) * 10
+
 				fmt.Printf("approximately %d webhooks will be spawned\n", hooks)
 				if question("are you sure you want to proceed?", []string{"yes", "no"}) == "no" {
-				    
-				    os.Exit(0)
-				    
+
+					os.Exit(0)
+
 				}
-				
+
 				fmt.Printf("spawned 0/%d webhooks...", hooks)
 
 				for w := 1; w <= hooks; w++ {
 
 					go webhookWorker(w-1, name, message, avatarUrl)
-					
+
 					fmt.Printf("\rspawned %d/%d webhooks...", w, hooks)
 
 				}
@@ -186,39 +186,39 @@ func main() {
 			}
 
 		case "2":
-            fmt.Println()
+			fmt.Println()
 			fmt.Println("tools:")
 			fmt.Println(" 1. clear webhooks")
 			fmt.Println(" 2. fill channel list")
 			fmt.Println(" 3. back")
 			fmt.Println()
-			
+
 			switch question("select an option", []string{"1", "2", "3"}) {
-			    
+
 			case "1":
-    			hooks, err := dg.GuildWebhooks(server.ID)
-    			if err != nil {
+				hooks, err := dg.GuildWebhooks(server.ID)
+				if err != nil {
 
-    				fmt.Printf("[err]: unable to retrieve webhooks for the selected server...\n")
-    				fmt.Printf("       %v\n", err)
-    				os.Exit(1)
-    
-    			}
+					fmt.Printf("[err]: unable to retrieve webhooks for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
 
-    			for _, hook := range hooks {
-    
-    				err := dg.WebhookDelete(hook.ID)
-    				if err != nil {
+				}
 
-    					fmt.Printf("[err]: unable to delete webhook...\n")
-    					fmt.Printf("       %v\n", err)
-    
-    				}
-    
-    			}
-    			
-    		//case "2":
-			    
+				for _, hook := range hooks {
+
+					err := dg.WebhookDelete(hook.ID)
+					if err != nil {
+
+						fmt.Printf("[err]: unable to delete webhook...\n")
+						fmt.Printf("       %v\n", err)
+
+					}
+
+				}
+
+				//case "2":
+
 			}
 
 		case "3":
