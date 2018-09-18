@@ -10,6 +10,7 @@ package main
 import (
 	// internals
 	"fmt"
+	"time"
 	// externals
 	"github.com/bwmarrin/discordgo"
 )
@@ -17,47 +18,76 @@ import (
 // the webhook worker
 func webhookWorker(num int, name, message, avatarUrl string) {
 
-	// get the channel that we're going to spam in
+	var (
+	   err error
+	   tries int
+       sleepTime time.Duration
+    )
+
+
 	channel := channels[num/10]
 
-	// create the initial webhook
 	webhook, err := dg.WebhookCreate(channel.ID, name, "")
 	if err != nil {
 
-		// we were unable to create the webhook
 		fmt.Printf("[err]: unable to create webhook...\n")
 		fmt.Printf("       %v\n", err)
 		return
 
 	}
 
-	// start the spam loop
 	for {
 
-		// send the message
 		err = dg.WebhookExecute(webhook.ID, webhook.Token, false, &discordgo.WebhookParams{
 			Content:   message,
 			AvatarURL: avatarUrl,
 		})
 		if err != nil {
 
-			// check if the webhook was deleted
 			if err.(*discordgo.RESTError).Response.StatusCode == 404 {
 
-				// if it was, recreate it
-				webhook, err = dg.WebhookCreate(channel.ID, name, "")
-				if err != nil {
+				// webhook recreation loop thing
+				for tries = 0; tries <= 3; tries++ {
 
-					// we were unable to create the webhook
-					fmt.Printf("[err]: unable to recreate webhook...\n")
-					fmt.Printf("       %v\n", err)
-					return
+					webhook, err = dg.WebhookCreate(channel.ID, name, "")
+					if err != nil {
+
+						fmt.Printf("[err]: unable to recreate webhook...\n")
+						fmt.Printf("       %v\n", err)
+
+						if tries == 3 {
+
+							return
+
+						} else {
+
+                            sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
+                            if err != nil {
+                                
+                                fmt.Printf("[err]: unable to parse duration...\n")
+                                fmt.Printf("       %v\n", err)
+                                return
+                                
+                            }
+
+							time.Sleep(sleepTime)
+
+						}
+
+						continue
+
+					}
+					break
 
 				}
 
+            } else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
+
+                fmt.Printf("[err]: an internal server error occured...\n")
+                continue
+
 			} else {
 
-				// unknown error, so we just exit
 				fmt.Printf("[err]: unknown error from api...\n")
 				fmt.Printf("       %v\n", err)
 				return

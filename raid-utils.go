@@ -277,7 +277,11 @@ func main() {
 
 				}
 
-				for _, hook := range hooks {
+				fmt.Printf("deleting webhook 0/%d...", len(hooks))
+
+				for i, hook := range hooks {
+
+					fmt.Printf("\rdeleting webhook %d/%d", i+1, len(hooks))
 
 					err := dg.WebhookDelete(hook.ID)
 					if err != nil {
@@ -288,6 +292,8 @@ func main() {
 					}
 
 				}
+
+				fmt.Printf("\nsuccessfully deleted %d webhooks\n", len(hooks))
 
 			case "3":
 				channels, err = dg.GuildChannels(server.ID)
