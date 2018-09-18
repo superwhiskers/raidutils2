@@ -187,14 +187,65 @@ func main() {
 		case "2":
 			fmt.Println()
 			fmt.Println("tools:")
-			fmt.Println(" 1. clear webhooks")
-			fmt.Println(" 2. fill channel list")
-			fmt.Println(" 3. back")
+			fmt.Println(" 1. get server info")
+			fmt.Println(" 2. clear webhooks")
+			fmt.Println(" 3. fill channel list")
+			fmt.Println(" 4. back")
 			fmt.Println()
 
 			switch question("select an option", []string{"1", "2", "3"}) {
 
 			case "1":
+				guild, err := dg.Guild(server.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the guild object for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
+
+				}
+
+				hooks, err := dg.GuildWebhooks(guild.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve webhooks for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
+
+				}
+
+				channels, err = dg.GuildChannels(guild.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the channels for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
+
+				}
+
+				owner, err := dg.User(guild.OwnerID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the guild owner for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
+
+				}
+
+				fmt.Println()
+				fmt.Printf("guild info for %s:\n", guild.Name)
+				fmt.Printf("  channel count: %d\n", len(channels))
+				fmt.Printf("  webhook count: %d\n", len(hooks))
+				fmt.Printf("  member count: %d\n", guild.MemberCount)
+				fmt.Printf("  owner:\n")
+				fmt.Printf("    id: %s\n", owner.ID)
+				fmt.Printf("    name: %s\n", owner.String())
+				fmt.Printf("    bot: %v\n", owner.Bot)
+				fmt.Printf("    verified: %v\n", owner.Verified)
+				fmt.Printf("    avatar: %s\n", owner.AvatarURL(""))
+				fmt.Println()
+
+			case "2":
 				hooks, err := dg.GuildWebhooks(server.ID)
 				if err != nil {
 
@@ -216,7 +267,36 @@ func main() {
 
 				}
 
-				//case "2":
+			case "3":
+				channels, err = dg.GuildChannels(server.ID)
+				if err != nil {
+
+					fmt.Printf("[err]: unable to retrieve the channels for the selected server...\n")
+					fmt.Printf("       %v\n", err)
+					os.Exit(1)
+
+				}
+
+				if len(channels) == 100 {
+
+					fmt.Printf("this server already has 100 channels\n")
+
+				}
+
+				for x := len(channels); x <= 100; x++ {
+
+					_, err := dg.GuildChannelCreate(server.ID, "spam", "text")
+					if err != nil {
+
+						fmt.Printf("[err]: unable to create channel...\n")
+						fmt.Printf("       %v\n", err)
+						os.Exit(1)
+
+					}
+
+				}
+
+				fmt.Printf("finished adding %d channel(s)...\n", 100-len(channels))
 
 			}
 
