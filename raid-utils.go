@@ -281,7 +281,7 @@ func main() {
 
 				for i, hook := range hooks {
 
-					fmt.Printf("\rdeleting webhook %d/%d", i+1, len(hooks))
+					fmt.Printf("\rdeleting webhook %d/%d...", i+1, len(hooks))
 
 					err := dg.WebhookDelete(hook.ID)
 					if err != nil {
