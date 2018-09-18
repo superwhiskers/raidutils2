@@ -236,7 +236,7 @@ func main() {
 				invites, err := dg.GuildInvites(guild.ID)
 				if err != nil {
 
-					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)")
+					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)\n")
 					fmt.Printf("       %v\n", err)
 
 				}
@@ -253,7 +253,7 @@ func main() {
 				}
 
 				fmt.Println()
-				fmt.Printf("guild info for %s:\n", guild.Name)
+				fmt.Printf("guild info for \"%s\":\n", guild.Name)
 				fmt.Printf("  region: %s\n", guild.Region)
 				fmt.Printf("  channel count: %d\n", len(channels))
 				fmt.Printf("  webhook count: %d\n", len(hooks))
@@ -324,7 +324,7 @@ func main() {
 				invites, err := dg.GuildInvites(server.ID)
 				if err != nil {
 
-					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)")
+					fmt.Printf("[err]: unable to retrieve the invites for the selected server... (continuing anyways)\n")
 					fmt.Printf("       %v\n", err)
 
 				}
