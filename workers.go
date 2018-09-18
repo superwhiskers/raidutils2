@@ -15,10 +15,10 @@ import (
 )
 
 // the webhook worker
-func webhookWorker(dg *discordgo.Session, channels []*discordgo.Channel, name, message, avatarUrl string) {
+func webhookWorker(num int, name, message, avatarUrl string) {
 
-	// select a random channel to spam in
-	channel := channels[randint(0, len(channels))]
+	// get the channel that we're going to spam in
+	channel := channels[num/10]
 
 	// create the initial webhook
 	webhook, err := dg.WebhookCreate(channel.ID, name, "")

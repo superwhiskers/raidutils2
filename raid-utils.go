@@ -19,7 +19,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// the server variable
+// variables that needed to be glo
 var (
 	server   *discordgo.UserGuild
 	channels []*discordgo.Channel
@@ -33,14 +33,13 @@ func main() {
 	runtime.GOMAXPROCS(1000)
 
 	token := question("input a discord token below", []string{})
-	isBot := question("is this a bot?", []string{"yes", "no", "true", "false"})
 
-	switch isBot {
+	switch question("is this a bot?", []string{"yes", "no"}) {
 
-	case "yes", "true":
+	case "yes":
 		dg, err = discordgo.New("Bot " + token)
 
-	case "no", "false":
+	case "no":
 		dg, err = discordgo.New(token)
 
 	}
@@ -128,7 +127,7 @@ func main() {
 				name := question("what should the webhooks be named?", []string{})
 				message := question("what should they spam?", []string{})
 				avatarUrl := question("what should the avatar url be?", []string{})
-				fmt.Println("calculating webhook count...\n")
+				fmt.Println("calculating webhook count...")
 
 				allChannels, err := dg.GuildChannels(server.ID)
 				if err != nil {
@@ -160,17 +159,17 @@ func main() {
 
 				}
 
-				fmt.Printf("spawned 0/%d webhooks...", hooks)
+				fmt.Printf("spawned 0/%d workers...", hooks)
 
 				for w := 1; w <= hooks; w++ {
 
 					go webhookWorker(w-1, name, message, avatarUrl)
 
-					fmt.Printf("\rspawned %d/%d webhooks...", w, hooks)
+					fmt.Printf("\rspawned %d/%d workers...", w, hooks)
 
 				}
 
-				fmt.Printf("the spamming has begun. press ctrl-c to stop...\n")
+				fmt.Printf("\nthe spamming has begun. press ctrl-c to stop...\n")
 				sc := make(chan os.Signal, 1)
 				signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 				<-sc
