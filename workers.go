@@ -111,7 +111,12 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 
 			} else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
 
-				fmt.Printf("[err]: an internal server error occured...\n")
+				fmt.Printf("[err]: an internal server error occurred...\n")
+				continue
+
+			} else if err.(*discordgo.RESTError).Response.StatusCode == 400 {
+
+				fmt.Printf("[err]: a bad request error occurred...\n")
 				continue
 
 			} else {
