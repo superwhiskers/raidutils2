@@ -19,20 +19,49 @@ import (
 func webhookWorker(num int, name, message, avatarUrl string) {
 
 	var (
-	   err error
-	   tries int
-       sleepTime time.Duration
-    )
-
+		err       error
+		tries     int
+		sleepTime time.Duration
+	)
 
 	channel := channels[num/10]
 
 	webhook, err := dg.WebhookCreate(channel.ID, name, "")
 	if err != nil {
 
-		fmt.Printf("[err]: unable to create webhook...\n")
-		fmt.Printf("       %v\n", err)
-		return
+		// webhook recreation loop thing
+		for tries = 0; tries <= 3; tries++ {
+
+			webhook, err = dg.WebhookCreate(channel.ID, name, "")
+			if err != nil {
+
+				fmt.Printf("[err]: unable to recreate webhook...\n")
+				fmt.Printf("       %v\n", err)
+
+				if tries == 3 {
+
+					return
+
+				} else {
+
+					sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
+					if err != nil {
+
+						fmt.Printf("[err]: unable to parse duration...\n")
+						fmt.Printf("       %v\n", err)
+						return
+
+					}
+
+					time.Sleep(sleepTime)
+
+				}
+				continue
+
+			}
+			break
+
+		}
 
 	}
 
@@ -61,19 +90,18 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 
 						} else {
 
-                            sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
-                            if err != nil {
-                                
-                                fmt.Printf("[err]: unable to parse duration...\n")
-                                fmt.Printf("       %v\n", err)
-                                return
-                                
-                            }
+							sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
+							if err != nil {
+
+								fmt.Printf("[err]: unable to parse duration...\n")
+								fmt.Printf("       %v\n", err)
+								return
+
+							}
 
 							time.Sleep(sleepTime)
 
 						}
-
 						continue
 
 					}
@@ -81,10 +109,10 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 
 				}
 
-            } else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
+			} else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
 
-                fmt.Printf("[err]: an internal server error occured...\n")
-                continue
+				fmt.Printf("[err]: an internal server error occured...\n")
+				continue
 
 			} else {
 
