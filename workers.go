@@ -73,57 +73,65 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 		})
 		if err != nil {
 
-			if err.(*discordgo.RESTError).Response.StatusCode == 404 {
+			switch t := err.(type) {
 
-				// webhook recreation loop thing
-				for tries = 0; tries <= 3; tries++ {
+			case *discordgo.RESTError:
+				if err.(*discordgo.RESTError).Response.StatusCode == 404 {
 
-					webhook, err = dg.WebhookCreate(channel.ID, name, "")
-					if err != nil {
+					// webhook recreation loop thing
+					for tries = 0; tries <= 3; tries++ {
 
-						fmt.Printf("[err]: unable to recreate webhook...\n")
-						fmt.Printf("       %v\n", err)
+						webhook, err = dg.WebhookCreate(channel.ID, name, "")
+						if err != nil {
 
-						if tries == 3 {
+							fmt.Printf("[err]: unable to recreate webhook...\n")
+							fmt.Printf("       %v\n", err)
 
-							return
+							if tries == 3 {
 
-						} else {
-
-							sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
-							if err != nil {
-
-								fmt.Printf("[err]: unable to parse duration...\n")
-								fmt.Printf("       %v\n", err)
 								return
 
-							}
+							} else {
 
-							time.Sleep(sleepTime)
+								sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
+								if err != nil {
+
+									fmt.Printf("[err]: unable to parse duration...\n")
+									fmt.Printf("       %v\n", err)
+									return
+
+								}
+
+								time.Sleep(sleepTime)
+
+							}
+							continue
 
 						}
-						continue
+						break
 
 					}
-					break
+
+				} else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
+
+					fmt.Printf("[err]: an internal server error occurred...\n")
+					continue
+
+				} else if err.(*discordgo.RESTError).Response.StatusCode == 400 {
+
+					fmt.Printf("[err]: a bad request error occurred...\n")
+					continue
+
+				} else {
+
+					fmt.Printf("[err]: unknown error from api...\n")
+					fmt.Printf("       %v\n", err)
+					return
 
 				}
 
-			} else if err.(*discordgo.RESTError).Response.StatusCode == 500 {
-
-				fmt.Printf("[err]: an internal server error occurred...\n")
-				continue
-
-			} else if err.(*discordgo.RESTError).Response.StatusCode == 400 {
-
-				fmt.Printf("[err]: a bad request error occurred...\n")
-				continue
-
-			} else {
-
-				fmt.Printf("[err]: unknown error from api...\n")
-				fmt.Printf("       %v\n", err)
-				return
+			default:
+				fmt.Printf("[err]: unknown error type from webhook execution %T\n", t)
 
 			}
 

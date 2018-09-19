@@ -79,7 +79,7 @@ func question(prompt string, valid []string) string {
 
 		}
 
-		fmt.Printf("%s is not a valid answer\n", inp)
+		fmt.Printf("\"%s\" is not a valid answer\n", inp)
 
 	}
 
