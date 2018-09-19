@@ -32,7 +32,26 @@ func menuOptRaid() {
 		name := question("what should the webhooks be named?", []string{})
 		message := question("what should they spam?", []string{})
 		avatarUrl := question("what should the avatar url be?", []string{})
-		fmt.Println("calculating webhook count...")
+		cycleWebhooks := convertYNToBool[question("should a new webhook be used for every new spam message?", []string{"yes", "no"})]
+		limitWebhooks := question("should there be a webhook cap?", []string{"yes", "no"})
+
+		var hooks int
+		if limitWebhooks == "no" {
+
+			fmt.Println("calculating webhook count...")
+
+		} else {
+
+			hooksTmp := question("what should they be capped at?", []string{})
+			hooks, err = strconv.Atoi(hooksTmp)
+			if err != nil {
+
+				fmt.Printf("%s is not a number...\n", hooksTmp)
+				return
+
+			}
+
+		}
 
 		allChannels, err := dg.GuildChannels(server.ID)
 		if err != nil {
@@ -55,7 +74,11 @@ func menuOptRaid() {
 
 		}
 
-		hooks := len(channels) * 10
+		if limitWebhooks == "no" {
+
+			hooks = len(channels) * 10
+
+		}
 
 		fmt.Printf("approximately %d webhooks will be spawned\n", hooks)
 		if question("are you sure you want to proceed?", []string{"yes", "no"}) == "no" {
@@ -68,7 +91,7 @@ func menuOptRaid() {
 
 		for w := 1; w <= hooks; w++ {
 
-			go webhookWorker(w-1, name, message, avatarUrl)
+			go webhookWorker(w-1, cycleWebhooks, name, message, avatarUrl)
 
 			fmt.Printf("\rspawned %d/%d workers...", w, hooks)
 

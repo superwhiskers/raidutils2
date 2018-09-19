@@ -10,56 +10,28 @@ package main
 import (
 	// internals
 	"fmt"
-	"time"
 	// externals
 	"github.com/bwmarrin/discordgo"
 )
 
 // the webhook worker
-func webhookWorker(num int, name, message, avatarUrl string) {
+func webhookWorker(num int, cycle bool, name, message, avatarUrl string) {
 
 	var (
-		err       error
-		tries     int
-		sleepTime time.Duration
+		err     error
+		webhook *discordgo.Webhook
 	)
 
 	channel := channels[num/10]
 
-	webhook, err := dg.WebhookCreate(channel.ID, name, "")
-	if err != nil {
+	if cycle != true {
 
-		// webhook recreation loop thing
-		for tries = 0; tries <= 3; tries++ {
+		webhook, err = createWebhook(channel, name)
+		if err != nil {
 
-			webhook, err = dg.WebhookCreate(channel.ID, name, "")
-			if err != nil {
-
-				fmt.Printf("[err]: unable to recreate webhook...\n")
-				fmt.Printf("       %v\n", err)
-
-				if tries == 3 {
-
-					return
-
-				} else {
-
-					sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
-					if err != nil {
-
-						fmt.Printf("[err]: unable to parse duration...\n")
-						fmt.Printf("       %v\n", err)
-						return
-
-					}
-
-					time.Sleep(sleepTime)
-
-				}
-				continue
-
-			}
-			break
+			fmt.Printf("[err]: unable to create webhook...\n")
+			fmt.Printf("       %v\n", err)
+			return
 
 		}
 
@@ -67,10 +39,24 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 
 	for {
 
+		if cycle == true {
+
+			webhook, err = createWebhook(channel, name)
+			if err != nil {
+
+				fmt.Printf("[err]: unable to create webhook...\n")
+				fmt.Printf("       %v\n", err)
+				return
+
+			}
+
+		}
+
 		err = dg.WebhookExecute(webhook.ID, webhook.Token, false, &discordgo.WebhookParams{
 			Content:   message,
 			AvatarURL: avatarUrl,
 		})
+
 		if err != nil {
 
 			switch t := err.(type) {
@@ -78,37 +64,19 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 			case *discordgo.RESTError:
 				if err.(*discordgo.RESTError).Response.StatusCode == 404 {
 
-					// webhook recreation loop thing
-					for tries = 0; tries <= 3; tries++ {
+					if cycle == true {
 
-						webhook, err = dg.WebhookCreate(channel.ID, name, "")
-						if err != nil {
+						fmt.Printf("[err]: webhook was deleted...\n")
+						continue
 
-							fmt.Printf("[err]: unable to recreate webhook...\n")
-							fmt.Printf("       %v\n", err)
+					}
 
-							if tries == 3 {
+					webhook, err = createWebhook(channel, name)
+					if err != nil {
 
-								return
-
-							} else {
-
-								sleepTime, err = time.ParseDuration(fmt.Sprintf("%ds", 30*tries))
-								if err != nil {
-
-									fmt.Printf("[err]: unable to parse duration...\n")
-									fmt.Printf("       %v\n", err)
-									return
-
-								}
-
-								time.Sleep(sleepTime)
-
-							}
-							continue
-
-						}
-						break
+						fmt.Printf("[err]: unable to create webhook...\n")
+						fmt.Printf("       %v\n", err)
+						return
 
 					}
 
@@ -132,6 +100,19 @@ func webhookWorker(num int, name, message, avatarUrl string) {
 
 			default:
 				fmt.Printf("[err]: unknown error type from webhook execution %T\n", t)
+
+			}
+
+		}
+
+		if cycle == true {
+
+			// there's really no point in getting the error from this but i'll log it anyways
+			err = dg.WebhookDelete(webhook.ID)
+			if err != nil {
+
+				fmt.Printf("[err]: unable to delete webhook...")
+				fmt.Printf("       %v\n", err)
 
 			}
 
