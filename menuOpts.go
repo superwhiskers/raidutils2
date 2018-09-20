@@ -273,7 +273,7 @@ func menuOptAddChannels() {
 
 	for x := len(channels); x < channelCount; x++ {
 
-		fmt.Printf("\radding channel %d/%d...", x+1, channelCount-len(channels))
+		fmt.Printf("\radding channel %d/%d...", (x+1)-len(channels), channelCount-len(channels))
 
 		_, err := dg.GuildChannelCreate(server.ID, "spam", "text")
 		if err != nil {
