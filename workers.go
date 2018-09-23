@@ -15,7 +15,7 @@ import (
 )
 
 // the webhook worker
-func webhookWorker(num int, respawn, cycle bool, name, message, avatarUrl string) {
+func webhookWorker(num int, cycle bool, name, message, avatarUrl string) {
 
 	var (
 		err     error
@@ -31,7 +31,29 @@ func webhookWorker(num int, respawn, cycle bool, name, message, avatarUrl string
 
 			fmt.Printf("[err]: unable to create webhook...\n")
 			fmt.Printf("       %v\n", err)
-			return
+
+			searchMut.Lock()
+
+			for {
+
+				num, err = searchForOpenChannel()
+				if err != nil {
+
+					fmt.Printf("[err]: unable to find open channel...\n")
+					fmt.Printf("       %v\n", err)
+
+				}
+
+				if num != -1 {
+
+					channel = channels[num]
+					break
+
+				}
+
+			}
+
+			searchMut.Unlock()
 
 		}
 
@@ -46,7 +68,29 @@ func webhookWorker(num int, respawn, cycle bool, name, message, avatarUrl string
 
 				fmt.Printf("[err]: unable to create webhook...\n")
 				fmt.Printf("       %v\n", err)
-				return
+
+				searchMut.Lock()
+
+				for {
+
+					num, err = searchForOpenChannel()
+					if err != nil {
+
+						fmt.Printf("[err]: unable to find open channel...\n")
+						fmt.Printf("       %v\n", err)
+
+					}
+
+					if num != -1 {
+
+						channel = channels[num]
+						break
+
+					}
+
+				}
+
+				searchMut.Unlock()
 
 			}
 
@@ -76,7 +120,29 @@ func webhookWorker(num int, respawn, cycle bool, name, message, avatarUrl string
 
 						fmt.Printf("[err]: unable to create webhook...\n")
 						fmt.Printf("       %v\n", err)
-						return
+
+						searchMut.Lock()
+
+						for {
+
+							num, err = searchForOpenChannel()
+							if err != nil {
+
+								fmt.Printf("[err]: unable to find open channel...\n")
+								fmt.Printf("       %v\n", err)
+
+							}
+
+							if num != -1 {
+
+								channel = channels[num]
+								break
+
+							}
+
+						}
+
+						searchMut.Unlock()
 
 					}
 

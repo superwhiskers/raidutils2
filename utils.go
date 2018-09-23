@@ -139,9 +139,50 @@ func createWebhook(channel *discordgo.Channel, name string) (*discordgo.Webhook,
 }
 
 // searchForOpenChannel searches the channel list for a channel that can take another webhook
-func searchForOpenChannel() int {
+func searchForOpenChannel() (int, error) {
 
-	// something something i forgot to save this when i worked on it
-	return 0
+	var (
+		allChannels []*discordgo.Channel
+		hooks       []*discordgo.Webhook
+		err         error
+	)
+
+	allChannels, err = dg.GuildChannels(server.ID)
+	if err != nil {
+
+		return -1, err
+
+	}
+
+	channels = []*discordgo.Channel{}
+
+	for _, channel := range allChannels {
+
+		if channel.Type == discordgo.ChannelTypeGuildText {
+
+			channels = append(channels, channel)
+
+		}
+
+	}
+
+	for i, channel := range channels {
+
+		hooks, err = dg.ChannelWebhooks(channel.ID)
+		if err != nil {
+
+			return -1, err
+
+		}
+
+		if len(hooks) != 10 {
+
+			return i, nil
+
+		}
+
+	}
+
+	return -1, nil
 
 }

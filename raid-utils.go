@@ -23,8 +23,9 @@ var (
 	server   *discordgo.UserGuild
 	channels []*discordgo.Channel
 	dg       *discordgo.Session
-	searchingMut *sync.Mutex
 	err      error
+
+	searchMut = &sync.Mutex{}
 )
 
 // main func
