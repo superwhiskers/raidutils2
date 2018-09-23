@@ -15,7 +15,7 @@ import (
 )
 
 // the webhook worker
-func webhookWorker(num int, cycle bool, name, message, avatarUrl string) {
+func webhookWorker(num int, respawn, cycle bool, name, message, avatarUrl string) {
 
 	var (
 		err     error

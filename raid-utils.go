@@ -13,6 +13,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	// externals
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,6 +23,7 @@ var (
 	server   *discordgo.UserGuild
 	channels []*discordgo.Channel
 	dg       *discordgo.Session
+	searchingMut *sync.Mutex
 	err      error
 )
 
