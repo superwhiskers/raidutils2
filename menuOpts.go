@@ -91,7 +91,7 @@ func menuOptRaid() {
 
 		for w := 1; w <= hooks; w++ {
 
-			go webhookWorker(w-1, cycleWebhooks, name, message, avatarUrl)
+			go webhookWorker(w-1, false, cycleWebhooks, name, message, avatarUrl)
 
 			fmt.Printf("\rspawned %d/%d workers...", w, hooks)
 

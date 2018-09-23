@@ -140,7 +140,8 @@ func createWebhook(channel *discordgo.Channel, name string) (*discordgo.Webhook,
 
 // searchForOpenChannel searches the channel list for a channel that can take another webhook
 func searchForOpenChannel() int {
-    
-    // ( ͡° ͜ʖ ͡°)
-    
+
+	// something something i forgot to save this when i worked on it
+	return 0
+
 }
