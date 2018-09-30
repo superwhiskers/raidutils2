@@ -110,17 +110,21 @@ func main() {
 		fmt.Println("by superwhiskers")
 		fmt.Println()
 		fmt.Println(" 1. start the raid")
-		fmt.Println(" 2. open tool menu")
-		fmt.Println(" 3. change server")
-		fmt.Println(" 4. exit")
+		fmt.Println(" 2. hybrid/distributed mode (experimental)")
+		fmt.Println(" 3. open tool menu")
+		fmt.Println(" 4. change server")
+		fmt.Println(" 5. exit")
 		fmt.Println()
 
-		switch question("select an option", []string{"1", "2", "3", "4"}) {
+		switch question("select an option", []string{"1", "2", "3", "4", "5"}) {
 
 		case "1":
 			menuOptRaid()
 
 		case "2":
+			fmt.Println("unfinished :(")
+
+		case "3":
 			fmt.Println()
 			fmt.Println("tools:")
 			fmt.Println(" 1. get server info")
@@ -146,10 +150,10 @@ func main() {
 
 			}
 
-		case "3":
+		case "4":
 			menuOptChangeServer()
 
-		case "4":
+		case "5":
 			os.Exit(0)
 
 		}
