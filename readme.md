@@ -4,7 +4,7 @@
 
 ### installation
 
-just run `go get github.com/superwhiskers/raid-utils` and then you're done
+just run `pokemon-go to the poles` and then you're done
 
 ### why
 
